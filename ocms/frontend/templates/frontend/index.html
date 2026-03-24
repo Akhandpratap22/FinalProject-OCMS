@@ -3,67 +3,80 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>OCMS - Online Course Management System</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OCMS - Online Course Management System</title>
+    <meta name="description" content="OCMS - Modern Online Course Management System for students, instructors, and administrators">
     <link rel="stylesheet" href="{% static 'frontend/style.css' %}">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
     <script src="{% static 'frontend/app.js' %}" defer></script>
 </head>
 <body>
+    <!-- Loading Overlay -->
+    <div class="loader-overlay">
+        <div class="loader"></div>
+    </div>
+
+    <!-- Header -->
     <header class="topbar">
         <div class="logo">OCMS</div>
         <nav class="nav">
-            <button class="nav-link" data-section="courses-section">Courses</button>
+            <button class="nav-link active" data-section="courses-section">Courses</button>
             <button class="nav-link" data-section="enrollments-section">My Enrollments</button>
             <button class="nav-link" data-section="instructor-section">Instructor</button>
             <button class="nav-link" data-section="admin-section">Admin</button>
         </nav>
         <div class="user-info">
+            <div class="user-avatar">?</div>
             <span id="user-display">Guest</span>
             <button id="logout-btn" class="btn-secondary small hidden">Logout</button>
         </div>
     </header>
 
+    <!-- Main Content -->
     <main class="layout">
+        <!-- Auth Panel -->
         <section class="auth-panel">
             <div class="tabs">
                 <button class="tab active" data-tab="login-tab">Login</button>
                 <button class="tab" data-tab="register-tab">Register</button>
             </div>
 
+            <!-- Login Form -->
             <div id="login-tab" class="tab-content active">
-                <h2>Login</h2>
+                <h2>Welcome Back</h2>
                 <form id="login-form" class="form">
                     <label>
                         Username
-                        <input type="text" name="username" required>
+                        <input type="text" name="username" placeholder="Enter your username" required autocomplete="username">
                     </label>
                     <label>
                         Password
-                        <input type="password" name="password" required>
+                        <input type="password" name="password" placeholder="Enter your password" required autocomplete="current-password">
                     </label>
                     <button type="submit" class="btn-primary full-width">Login</button>
                 </form>
             </div>
 
+            <!-- Register Form -->
             <div id="register-tab" class="tab-content">
                 <h2>Create Account</h2>
                 <form id="register-form" class="form">
                     <label>
                         Username
-                        <input type="text" name="username" required>
+                        <input type="text" name="username" placeholder="Choose a username" required autocomplete="username">
                     </label>
                     <label>
                         Email
-                        <input type="email" name="email" required>
+                        <input type="email" name="email" placeholder="Enter your email" required autocomplete="email">
                     </label>
                     <label>
                         Password
-                        <input type="password" name="password" required>
+                        <input type="password" name="password" placeholder="Create a password" required autocomplete="new-password">
                     </label>
                     <label>
                         Role
                         <select name="role" required>
-                            <option value="student">Student</option>
+                            <option value="student" selected>Student</option>
                             <option value="instructor">Instructor</option>
                             <option value="admin">Admin</option>
                         </select>
@@ -75,10 +88,12 @@
             <div id="auth-messages" class="messages"></div>
         </section>
 
+        <!-- Content Panel -->
         <section class="content-panel">
+            <!-- Courses Section -->
             <section id="courses-section" class="section active">
                 <div class="section-header">
-                    <h2>Courses</h2>
+                    <h2>Explore Courses</h2>
                     <div class="filters">
                         <input type="text" id="search-input" placeholder="Search courses...">
                         <select id="level-filter">
@@ -94,6 +109,7 @@
                 <div id="courses-pagination" class="pagination"></div>
             </section>
 
+            <!-- Enrollments Section -->
             <section id="enrollments-section" class="section hidden">
                 <div class="section-header">
                     <h2>My Enrollments</h2>
@@ -101,22 +117,23 @@
                 <div id="enrollments-list" class="card-grid"></div>
             </section>
 
+            <!-- Instructor Section -->
             <section id="instructor-section" class="section hidden">
                 <div class="section-header">
                     <h2>Instructor - Create Course</h2>
                 </div>
                 <form id="create-course-form" class="form">
                     <label>
-                        Title
-                        <input type="text" name="title" required>
+                        Course Title
+                        <input type="text" name="title" placeholder="Enter course title" required>
                     </label>
                     <label>
                         Description
-                        <textarea name="description" rows="3" required></textarea>
+                        <textarea name="description" rows="4" placeholder="Describe your course..." required></textarea>
                     </label>
                     <label>
-                        Price
-                        <input type="number" step="0.01" name="price" required>
+                        Price (₹)
+                        <input type="number" step="0.01" name="price" placeholder="0.00" required>
                     </label>
                     <label>
                         Level
@@ -127,14 +144,15 @@
                         </select>
                     </label>
                     <label>
-                        Category ID (use admin to create categories)
-                        <input type="number" name="category" required>
+                        Category ID
+                        <input type="number" name="category" placeholder="Enter category ID (use admin to create categories)" required>
                     </label>
                     <button type="submit" class="btn-primary full-width">Create Course</button>
                 </form>
                 <div id="instructor-messages" class="messages"></div>
             </section>
 
+            <!-- Admin Section -->
             <section id="admin-section" class="section hidden">
                 <div class="section-header">
                     <h2>Admin Dashboard</h2>

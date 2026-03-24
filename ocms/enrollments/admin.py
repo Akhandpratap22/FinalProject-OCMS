@@ -1,7 +1,4 @@
 from django.contrib import admin
-
-# Register your models here.
-from django.contrib import admin
-from .models import Enrollment
+from .models import Enrollment, LectureProgress
 
 admin.site.register(Enrollment)

@@ -113,3 +113,149 @@ def delete_course(request, pk):
 
     course.delete()
     return Response({"message": "Course deleted successfully"})
+
+
+# Module Views
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
+def module_list_create(request, course_id):
+    """List all modules for a course or create a new module."""
+    from .models import Module
+    from .serializers import ModuleSerializer
+
+    if request.method == 'GET':
+        modules = Module.objects.filter(course_id=course_id).order_by('order')
+        serializer = ModuleSerializer(modules, many=True)
+        return Response(serializer.data)
+
+    # POST - Create module
+    try:
+        course = Course.objects.get(pk=course_id)
+    except Course.DoesNotExist:
+        return Response({"error": "Course not found"}, status=404)
+
+    if request.user != course.instructor:
+        return Response({"error": "Only instructor can add modules"}, status=403)
+
+    serializer = ModuleSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save(course=course)
+        return Response(serializer.data, status=201)
+    return Response(serializer.errors, status=400)
+
+
+@api_view(['GET', 'PUT', 'DELETE'])
+@permission_classes([IsAuthenticated])
+def module_detail(request, course_id, module_id):
+    """Get, update, or delete a specific module."""
+    from .models import Module
+    from .serializers import ModuleSerializer
+
+    try:
+        module = Module.objects.get(pk=module_id, course_id=course_id)
+    except Module.DoesNotExist:
+        return Response({"error": "Module not found"}, status=404)
+
+    if request.method == 'GET':
+        serializer = ModuleSerializer(module)
+        return Response(serializer.data)
+
+    # Check instructor permission
+    if request.user != module.course.instructor:
+        return Response({"error": "Not allowed"}, status=403)
+
+    if request.method == 'PUT':
+        serializer = ModuleSerializer(module, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
+
+    if request.method == 'DELETE':
+        module.delete()
+        return Response({"message": "Module deleted successfully"})
+
+
+# Lecture Views
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
+def lecture_list_create(request, course_id, module_id):
+    """List all lectures for a module or create a new lecture."""
+    from .models import Module, Lecture
+    from .serializers import LectureSerializer
+
+    if request.method == 'GET':
+        lectures = Lecture.objects.filter(module_id=module_id).order_by('order')
+        serializer = LectureSerializer(lectures, many=True)
+        return Response(serializer.data)
+
+    # POST - Create lecture
+    try:
+        module = Module.objects.get(pk=module_id, course_id=course_id)
+    except Module.DoesNotExist:
+        return Response({"error": "Module not found"}, status=404)
+
+    if request.user != module.course.instructor:
+        return Response({"error": "Only instructor can add lectures"}, status=403)
+
+    serializer = LectureSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save(module=module)
+        return Response(serializer.data, status=201)
+    return Response(serializer.errors, status=400)
+
+
+@api_view(['GET', 'PUT', 'DELETE'])
+@permission_classes([IsAuthenticated])
+def lecture_detail(request, course_id, module_id, lecture_id):
+    """Get, update, or delete a specific lecture."""
+    from .models import Lecture
+    from .serializers import LectureSerializer
+
+    try:
+        lecture = Lecture.objects.get(pk=lecture_id, module_id=module_id, module__course_id=course_id)
+    except Lecture.DoesNotExist:
+        return Response({"error": "Lecture not found"}, status=404)
+
+    if request.method == 'GET':
+        serializer = LectureSerializer(lecture)
+        return Response(serializer.data)
+
+    # Check instructor permission
+    if request.user != lecture.module.course.instructor:
+        return Response({"error": "Not allowed"}, status=403)
+
+    if request.method == 'PUT':
+        serializer = LectureSerializer(lecture, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
+
+    if request.method == 'DELETE':
+        lecture.delete()
+        return Response({"message": "Lecture deleted successfully"})
+
+
+# Category Views
+@api_view(['GET', 'POST'])
+@permission_classes([AllowAny])
+def category_list(request):
+    """List all categories or create a new category."""
+    from .models import Category
+    from .serializers import CategorySerializer
+
+    if request.method == 'GET':
+        categories = Category.objects.all()
+        serializer = CategorySerializer(categories, many=True)
+        return Response(serializer.data)
+
+    # POST - Create category (only for instructors/admins)
+    if not request.user.is_authenticated or request.user.role not in ['INSTRUCTOR', 'ADMIN']:
+        return Response({"error": "Only instructors or admins can create categories"}, status=403)
+
+    serializer = CategorySerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=201)
+    return Response(serializer.errors, status=400)
